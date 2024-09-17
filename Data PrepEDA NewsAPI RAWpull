@@ -1,0 +1,122 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+import requests  ## for getting data from a server GET
+import re  
+import pandas as pd    
+from pandas import DataFrame
+import os
+import json
+
+## To tokenize and vectorize text type data
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
+import matplotlib.pyplot as plt
+import sklearn
+
+import requests  #to query the API 
+import re  #regular expressions
+import pandas as pd   # for dataframes
+
+from sklearn.feature_extraction.text import CountVectorizer   
+#for text vectorization
+
+filename = "Headlines"
+
+
+MyFile = open("C:/Users/joelh/OneDrive/Desktop/CSCI5622/Data/Headlines.csv", "w")
+
+WriteThis = "LABEL,Date,Source,Title,Headline\n"
+MyFile.write(WriteThis)
+MyFile.close()
+
+
+##This is one of the endpoint options you can read about on newsapi.org
+endpoint="https://newsapi.org/v2/everything"
+
+
+things = ['esports', 'PC','gaming']
+
+URLPost = {'apiKey':'7ad396dfa50f48a8b1a0e1ee0c544cca',
+                    'q': 'esports',
+                    'language': 'en'}
+
+response=requests.get(endpoint, URLPost)
+print(response)
+ 
+jsontxt = response.json()
+print(jsontxt)
+
+for stuff in things:
+    
+    URLPost = {'apiKey' : '7ad396dfa50f48a8b1a0e1ee0c544cca',
+               'q':stuff,
+               'language':'en'
+    }
+    
+    response = requests.get(endpoint, URLPost)
+    jsontxt = response.json()
+    
+    json_file = open("C:/Users/joelh/OneDrive/Desktop/CSCI5622/Data/Headlines.csv", "w")
+    json_file.write(json.dumps(jsontxt))
+    json_file.close()
+    
+    MyFILE=open("C:/Users/joelh/OneDrive/Desktop/CSCI5622/Data/Headlines.csv", "a")
+    LABEL=stuff
+    for items in jsontxt["articles"]:
+        # print(items, "\n\n\n")
+                  
+        #Author=items["author"]
+        #Author=str(Author)
+        #Author=Author.replace(',', '')
+        
+        ## SOURCE
+        Source=items["source"]["name"]
+        # print(Source)
+        
+        ## DATE
+        Date=items["publishedAt"]
+        NewDate=Date.split("T")
+        Date=NewDate[0]
+        # print(Date)
+        
+        ## TITLE
+        #  - Replace punctuation with space
+        #  - Accept one or more copies of punctuation         
+        #  - plus zero or more copies of a space
+        #  - and replace it with a single space
+        Title=items["title"]
+        Title=str(Title)
+        Title=re.sub(r'[,.;@#?!&$\-\']+', ' ', str(Title), flags=re.IGNORECASE)
+        Title=re.sub(' +', ' ', str(Title), flags=re.IGNORECASE)
+        Title=re.sub(r'\"', ' ', str(Title), flags=re.IGNORECASE)
+        Title=re.sub(r'[^a-zA-Z]', " ", str(Title), flags=re.VERBOSE)
+        Title=Title.replace(',', '')
+        Title=' '.join(Title.split())
+        Title=re.sub("\n|\r", "", Title)
+        # print(Title)
+
+        ## HEADLINE
+        Headline=items["description"]
+        Headline=str(Headline)
+        Headline=re.sub(r'[,.;@#?!&$\-\']+', ' ', Headline, flags=re.IGNORECASE)
+        Headline=re.sub(' +', ' ', Headline, flags=re.IGNORECASE)
+        Headline=re.sub(r'\"', ' ', Headline, flags=re.IGNORECASE)
+        Headline=re.sub(r'[^a-zA-Z]', " ", Headline, flags=re.VERBOSE)
+        Headline=Headline.replace(',', '') # commas are bad for csv
+        Headline=' '.join(Headline.split())
+        Headline=re.sub("\n|\r", "", Headline)
+        
+        ### AS AN OPTION - remove words of a given length............
+        ### Headline = ' '.join([wd for wd in Headline.split() if len(wd)>3])
+        
+        WriteThis=str(LABEL)+","+str(Date)+","+str(Source)+","+ str(Title) + "," + str(Headline) + "\n"
+        # print(WriteThis)
+        
+        MyFILE.write(WriteThis)
+        
+    ## CLOSE THE FILE
+    MyFILE.close()
