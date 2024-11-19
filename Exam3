@@ -1,0 +1,522 @@
+# -*- coding: utf-8 -*-
+"""
+
+@author: joelh
+"""
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
+from sklearn.model_selection import train_test_split
+from matplotlib.colors import ListedColormap
+from sklearn.tree import DecisionTreeClassifier 
+from sklearn import tree
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.preprocessing import OrdinalEncoder
+
+path="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Exam3data.csv"
+DF=pd.read_csv(path)
+DF1=pd.read_csv(path)
+DF2=pd.read_csv(path)
+print(DF2)
+DF2Label=DF2["Label"] 
+print(DF2Label) 
+MyDic2={"Yes":1, "No":2}
+print(MyDic2)
+DF2Label = DF2Label.map(MyDic2) 
+print(DF2Label)
+DF2=DF2.drop(["Label"], axis=1)
+
+print(DF2)
+
+print(DF)
+l=DF["Label"]
+DFLabel=DF["Label"]   
+print(DFLabel)  
+print(type(DFLabel)) 
+MyDic={"Yes":1, "No":2}
+DFLabel = DFLabel.map(MyDic) 
+print(DFLabel) 
+DF=DF.drop(["Label"], axis=1)
+print(DF) 
+
+scaler = StandardScaler() 
+DF=scaler.fit_transform(DF) 
+print(DF)
+
+
+MyPCA=PCA(n_components=2)
+Result=MyPCA.fit_transform(DF)
+principalDf = pd.DataFrame(data = Result, columns = ['principal component 1', 'principal component 2'])
+print(Result[:,0]) 
+print(Result)
+print("The explained variances are:")
+print(MyPCA.explained_variance_ratio_)
+finalDF = pd.concat([principalDf, l], axis = 1)
+print(finalDF)
+
+fig = plt.figure(figsize = (20,20))
+ax = fig.add_subplot(2,2,2) 
+ax.set_xlabel('Principal Component 1', fontsize = 15)
+ax.set_ylabel('Principal Component 2', fontsize = 15)
+ax.set_title('Exam 3 PCA', fontsize = 20)
+
+targets = ['Yes', 'No']
+colors = ['r', 'b']
+for target, color in zip(targets,colors):
+    indicesToKeep = finalDF['Label'] == target
+    ax.scatter(finalDF.loc[indicesToKeep, 'principal component 1']
+               , finalDF.loc[indicesToKeep, 'principal component 2']
+               , c = color
+               , s = 50)
+ax.legend(DFLabel)
+ax.grid()
+
+df11 = pd.concat([DF2.loc[:,["a","b","c","d","e","f"]], DF2Label], axis = 1)
+print(df11)
+
+path="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Exam3data.csv"
+dff=pd.read_csv(path)
+print(dff)
+dffLabel=dff["Label"] 
+print(dffLabel) 
+MyDicdff={"Yes":1, "No":2}
+print(MyDicdff)
+dffLabel = dffLabel.map(MyDicdff) 
+print(dffLabel)
+dff=dff.drop(["Label"], axis=1)
+print(dff)
+x = dff.iloc[:, 0:7].values
+y = dffLabel.values
+print(x)
+print(y)
+
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+print(X_train)
+print(y_train)
+
+
+sc = StandardScaler()
+
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+pca = PCA(n_components=2)
+
+X_train = pca.fit_transform(X_train)
+X_test = pca.transform(X_test)
+
+explained_variance = pca.explained_variance_ratio_
+
+classifier = LogisticRegression(random_state=0)
+classifier.fit(X_train, y_train)
+
+y_pred = classifier.predict(X_test)
+
+cm = metrics.confusion_matrix(y_test, y_pred)
+cm
+
+X_set, y_set = X_train, y_train
+X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min() - 1,
+                               stop=X_set[:, 0].max() + 1, step=0.01),
+                     np.arange(start=X_set[:, 1].min() - 1,
+                               stop=X_set[:, 1].max() + 1, step=0.01))
+
+plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(),
+                                                  X2.ravel()]).T).reshape(X1.shape), alpha=0.75,
+             cmap=ListedColormap(('yellow', 'white', 'aquamarine')))
+
+plt.xlim(X1.min(), X1.max())
+plt.ylim(X2.min(), X2.max())
+
+for i, j in enumerate(np.unique(y_set)):
+    plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                color=ListedColormap(('red', 'green', 'blue'))(i), label=j)
+
+plt.title('Logistic Regression (Training set)')
+plt.xlabel('PC1')  
+plt.ylabel('PC2')  
+plt.legend()  
+
+plt.show()
+
+X_set, y_set = X_test, y_test
+
+X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min() - 1,
+                               stop=X_set[:, 0].max() + 1, step=0.01),
+                     np.arange(start=X_set[:, 1].min() - 1,
+                               stop=X_set[:, 1].max() + 1, step=0.01))
+
+plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(),
+                                                  X2.ravel()]).T).reshape(X1.shape), alpha=0.75,
+             cmap=ListedColormap(('yellow', 'white', 'aquamarine')))
+
+plt.xlim(X1.min(), X1.max())
+plt.ylim(X2.min(), X2.max())
+
+for i, j in enumerate(np.unique(y_set)):
+    plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                color=ListedColormap(('red', 'green', 'blue'))(i), label=j)
+
+plt.title('Logistic Regression (Test set)')
+plt.xlabel('PC1')  # for Xlabel
+plt.ylabel('PC2')  # for Ylabel
+plt.legend()
+
+plt.show()
+
+colors = ["r", "g"]
+labels = ["Class 1", "Class 2"]
+for i, color, label in zip(np.unique(y), colors, labels):
+    plt.scatter(X_train[y_train == i, 0], X_train[y_train == i, 1], color=color, label=label)
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.legend()
+plt.show()
+
+
+
+
+
+classifier = LogisticRegression(random_state=9)
+model =classifier.fit(DF2, DF2Label)
+print(DF2)
+print(DF2Label)
+print(model)
+
+coef = model.coef_
+
+intercept = model.intercept_
+
+print("Coefficients:", coef)
+print("Intercept:", intercept)
+
+cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+cnf_matrix
+
+metrics.ConfusionMatrixDisplay(cnf_matrix)
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+sns.heatmap(pd.DataFrame(cnf_matrix), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cnf_matrix,display_labels=dffLabel)
+plt.title('Confusion matrix', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+disp.plot()
+plt.show()
+
+
+classifier = LogisticRegression(random_state=9)
+model =classifier.fit(DF2, DF2Label)
+print(DF2)
+print(DF2Label)
+print(model)
+
+coef = model.coef_
+
+intercept = model.intercept_
+
+print("Coefficients:", coef)
+print("Intercept:", intercept)
+cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+cnf_matrix
+
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+print(X_train)
+print(y_train)
+
+classifier = LogisticRegression(random_state=9)
+model =classifier.fit(X_train, y_train)
+print(X_train)
+print(y_train)
+
+coef = model.coef_
+
+intercept = model.intercept_
+print("Coefficients:", coef)
+print("Intercept:", intercept)
+y_pred = model.predict([[3.12,0.17,0.34,3.98,6.94,3.65]])
+print(y_pred)
+print(y_test)
+
+
+
+cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+cnf_matrix
+
+scaler = StandardScaler() 
+DF=scaler.fit_transform(DF) 
+print(DF)
+
+
+MyPCA=PCA(n_components=2)
+Result=MyPCA.fit_transform(X_train)
+principalDf = pd.DataFrame(data = Result
+             , columns = ['principal component 1', 'principal component 2'])
+print(Result[:,0]) 
+print(Result)
+print("The explained variances are:")
+print(MyPCA.explained_variance_ratio_)
+finalDF = pd.concat([principalDf, l], axis = 1)
+print(finalDF)
+
+fig = plt.figure(figsize = (20,20))
+ax = fig.add_subplot(2,2,2) 
+ax.set_xlabel('Principal Component 1', fontsize = 15)
+ax.set_ylabel('Principal Component 2', fontsize = 15)
+ax.set_title('Exam 3 PCA Training', fontsize = 20)
+
+targets = ['Yes', 'No']
+colors = ['r', 'b']
+for target, color in zip(targets,colors):
+    indicesToKeep = finalDF['Label'] == target
+    ax.scatter(finalDF.loc[indicesToKeep, 'principal component 1']
+               , finalDF.loc[indicesToKeep, 'principal component 2']
+               , c = color
+               , s = 50)
+ax.legend(DFLabel)
+ax.grid()
+
+
+
+
+
+path="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Exam3data.csv"
+
+dt = pd.read_csv(path)
+print(dt)
+
+feature_cols = ['a', 'b', 'c', 'd','e','f']
+dtx = dt[feature_cols]
+dty = dt["Label"] 
+print(dtx)
+print(dty)
+
+X_train, X_test, y_train, y_test = train_test_split(dtx, dty, test_size=0.3, random_state=1) 
+
+classif = DecisionTreeClassifier(criterion="entropy", max_depth=9)
+
+classif = classif.fit(X_train,y_train)
+
+y_pred = classif.predict(X_test)
+
+y_pred1 = classif.predict([[3.92,0.09,0.29,3.12,6.36,3.36]])
+y_pred1
+
+
+print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+
+
+plt.figure(figsize=(20, 10))
+tree.plot_tree(classif, 
+               filled=True, rounded=True, 
+               feature_names = X_train.columns,
+               class_names = ['pay','default'],
+               fontsize=12)
+plt.show()
+
+dtcnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+dtcnf_matrix
+
+class_names=[0,1] # name  of classes
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+# create heatmap
+sns.heatmap(pd.DataFrame(dtcnf_matrix), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+disp = metrics.ConfusionMatrixDisplay(confusion_matrix=dtcnf_matrix,display_labels=dty)
+plt.title('Confusion matrix', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+disp.plot()
+plt.show()
+
+path="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Exam3ordinal.csv"
+path2="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Exam3data.csv"
+
+Dataset1_Gaussian = pd.read_csv(path2)
+Dataset2_Categorical = pd.read_csv(path)
+
+print(Dataset1_Gaussian)
+print(Dataset2_Categorical)
+
+a =["Great", "Good", "Bad"]
+MyOrdEncoder=OrdinalEncoder(categories=[a])
+Dataset2_Categorical["a"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["a"]])
+print(Dataset2_Categorical)
+
+b =["High", "Medium", "Low"]
+MyOrdEncoder=OrdinalEncoder(categories=[b])
+Dataset2_Categorical["b"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["b"]])
+print(Dataset2_Categorical)
+
+c =["Full", "Part", "Unemployed"]
+MyOrdEncoder=OrdinalEncoder(categories=[c])
+Dataset2_Categorical["c"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["c"]])
+print(Dataset2_Categorical)
+
+d =["Doctorate", "Graduate", "Undergrad", "GED"]
+MyOrdEncoder=OrdinalEncoder(categories=[d])
+Dataset2_Categorical["d"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["d"]])
+print(Dataset2_Categorical)
+ 
+e =["Satisfied", "Unsatisfied"]
+MyOrdEncoder=OrdinalEncoder(categories=[e])
+Dataset2_Categorical["e"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["e"]])
+print(Dataset2_Categorical)
+
+f =["A", "B", "C", "D", "F"]
+MyOrdEncoder=OrdinalEncoder(categories=[f])
+Dataset2_Categorical["f"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["f"]])
+print(Dataset2_Categorical)
+
+
+print(Dataset2_Categorical)
+
+
+Training_G, Testing_G = train_test_split(Dataset1_Gaussian, test_size=.3)
+print("Training G:", Training_G)
+print("Testing G:", Testing_G)
+
+
+Training_G_Label = Training_G["Label"]
+Training_G=Training_G.drop(["Label"], axis=1)
+Testing_G_Label = Testing_G["Label"]
+Testing_G=Testing_G.drop(["Label"], axis=1)
+print("Testing G:", Testing_G)
+print("Testing G labels:", Testing_G_Label)
+
+
+
+Training_C, Testing_C = train_test_split(Dataset2_Categorical, test_size=.3)
+Training_C_Label = Training_C["Label"]
+Training_C=Training_C.drop(["Label"], axis=1)
+Testing_C_Label = Testing_C["Label"]
+Testing_C=Testing_C.drop(["Label"], axis=1)
+print("Testing C:", Testing_C)
+print("Testing C labels:", Testing_C_Label)
+
+
+
+MyGNB = GaussianNB()
+
+My_GNB_Model = MyGNB.fit(Training_G, Training_G_Label)
+print(My_GNB_Model)
+
+Predictions_G=My_GNB_Model.predict(Testing_G)
+print(Predictions_G)
+
+print("The Gaussian NB Model Prediction Probabilities are:")
+print(My_GNB_Model.predict_proba(Testing_G).round(3))
+
+CM_G = confusion_matrix(Testing_G_Label, Predictions_G)
+print(CM_G)
+
+
+disp = ConfusionMatrixDisplay(confusion_matrix=CM_G,display_labels=My_GNB_Model.classes_)
+disp.plot()
+plt.show()
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(CM_G, annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Gaussian NB', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+PredG = My_GNB_Model.predict([[3.26,0.12,0.49,2.99,6.18,3.11]])
+PredG
+
+
+
+
+
+
+
+
+
+
+
+
+MyCNB = CategoricalNB()
+print(Training_C)
+print(Training_C_Label)
+
+My_CNB_Model = MyCNB.fit(Training_C, Training_C_Label)
+print(My_CNB_Model)
+
+Predictions_C=My_CNB_Model.predict(Testing_C)
+print(Predictions_C)
+
+
+print("The Categorical NB Model Prediction Probabilities are:")
+print(My_CNB_Model.predict_proba(Testing_C).round(3))
+
+CM_C = confusion_matrix(Testing_C_Label, Predictions_C)
+print(CM_C)
+
+
+disp = ConfusionMatrixDisplay(confusion_matrix=CM_C,display_labels=My_CNB_Model.classes_)
+disp.plot()
+disp.ax_.set_title("Categorical Naive Bayes")
+plt.show()
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(pd.DataFrame(CM_C), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Categorical NB', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+PredC = My_GNB_Model.predict([[2,0,0,3,1,0]])
+PredC
+
+
+
+
+
+
+
+
+
+
+
+
+
