@@ -1,1 +1,249 @@
 
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 12 05:18:08 2024
+
+@author: joelh
+"""
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from IPython.display import clear_output
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn import datasets
+import plotly.express as px
+import csv
+
+
+df = pd.read_csv("C:/Users/joelh/OneDrive/Desktop/CSCI5622/Proj/vgsales.csv", index_col=0)
+df.head(20)
+
+
+
+scaler = StandardScaler()
+
+df = df.dropna()
+
+df1 = df.drop(['Name','Platform','Genre','Publisher'], axis=1)
+
+dftrain = scaler.fit_transform(df1)
+
+pca_exp = PCA()
+
+pca_exp.fit(dftrain)
+
+pca_var_exp = pca_exp.explained_variance_ratio_.cumsum()
+
+plt.figure(figsize = (6, 6))
+
+plt.plot(range(1, len(pca_var_exp) + 1), pca_var_exp, marker = 'o', linestyle = '--', linewidth = 1.2)
+
+plt.title('Explained Variance by Components')
+plt.xlabel('Number of Components')
+plt.ylabel('Cumulative Explained Variance')
+
+plt.show()
+
+pca2 = PCA(n_components = 2)
+
+pca2.fit(dftrain)
+
+scores_pca2 = pca2.transform(dftrain)
+
+scores_pca2
+
+pca3 = PCA(n_components = 3)
+
+pca3.fit(dftrain)
+
+scores_pca3 = pca3.transform(dftrain)
+
+scores_pca3
+
+
+path = "C:/Users/joelh/OneDrive/Desktop/CSCI5622/Proj/VGDataBAD.csv"
+DF=pd.read_csv(path)
+print(DF)
+DF = DF.dropna()
+
+
+DFLabel=DF["Platform"]  ## Save the Label 
+print(DFLabel)  ## print the labels
+print(type(DFLabel))  ## check the datatype you have
+## Remap the label names from strings to numbers
+MyDic={"Nintendo":0, "Playstation":1, "Microsoft":2}
+DFLabel = DFLabel.map(MyDic)  ## Update the label to your number remap values
+print(DFLabel) ## Print the labels to confirm 
+## Now, remove the label from the original dataframe
+DF=DF.drop(["Platform"], axis=1)
+print(DF) #Print the dataframe to confirm 
+
+DF = DF.dropna()
+
+DF = DF.drop(['Name','Year_of_Release','Genre','Publisher','Developer', 'Rating'], axis=1)
+
+
+scaler = StandardScaler() ##Instantiate
+DFs=scaler.fit_transform(DF) ## Scale data
+print(DFs)
+
+MyPCA=PCA(n_components=3)
+Result=MyPCA.fit_transform(DFs)
+
+
+print(Result[:,0]) 
+print(Result) ## Print the new (transformed) dataset
+print("The explained variances are:")
+print(MyPCA.explained_variance_ratio_)
+
+scaler.fit(DF) 
+X_scaled = scaler.transform(DF)
+X_pca = MyPCA.transform(X_scaled) 
+X_pca
+ex_variance=np.var(X_pca,axis=0)
+ex_variance_ratio = ex_variance/np.sum(ex_variance)
+ex_variance_ratio
+
+
+Xax = X_pca[:,0]
+Yax = X_pca[:,1]
+Zax = X_pca[:,2]
+
+cdict = {0:'red',1:'green',2:'blue'}
+labl = {0:'Nintendo',1:'Playstation', 2: 'Microsoft'}
+marker = {0:'*',1:'o', 2:'x'}
+alpha = {0:.3, 1:.5,2:.7}
+
+fig = plt.figure(figsize=(12,12))
+ax = fig.add_subplot(111, projection='3d')
+
+fig.patch.set_facecolor('white')
+for l in np.unique(DFLabel):
+ ix=np.where(DFLabel==l)
+ ax.scatter(Xax[ix], Yax[ix], Zax[ix], c=cdict[l], s=40,
+           label=labl[l], marker=marker[l], alpha=alpha[l])
+# for loop ends
+ax.set_xlabel("First Principal Component", fontsize=15)
+ax.set_ylabel("Second Principal Component", fontsize=15)
+ax.set_zlabel("Third Principal Component", fontsize=15)
+
+ax.legend()
+plt.show()
+
+
+pca2=PCA(n_components=2)
+X_scaled = scaler.transform(DF)
+X_pca2=MyPCA.transform(X_scaled) 
+ex_variance2=np.var(X_pca2,axis=0)
+ex_variance_ratio2 = ex_variance2/np.sum(ex_variance2)
+ex_variance_ratio2
+
+
+Xax=X_pca[:,0]
+Yax=X_pca[:,1]
+cdict = {0:'red',1:'green',2:'blue'}
+labl = {0:'Nintendo',1:'Playstation', 2: 'Microsoft'}
+marker = {0:'*',1:'o', 2:'x'}
+alpha = {0:.3, 1:.5,2:.2}
+fig,ax=plt.subplots(figsize=(12,12))
+fig.patch.set_facecolor('white')
+for l in np.unique(DFLabel):
+ ix=np.where(DFLabel==l)
+ ax.scatter(Xax[ix],Yax[ix],c=cdict[l],s=40,
+           label=labl[l],marker=marker[l],alpha=alpha[l])
+# for loop ends
+plt.xlabel("First Principal Component",fontsize=14)
+plt.ylabel("Second Principal Component",fontsize=14)
+plt.legend()
+plt.show()
+
+DFpd = pd.DataFrame(DFs)
+DFpd.to_csv('PCAdata.csv', index = False)
+
+import os
+
+cwd = os.getcwd()
+print(cwd)
+
+
+
+
+DFs=scaler.fit_transform(DF) ## Scale data
+print(DFs)
+
+MyPCA=PCA(n_components=3)
+Result=MyPCA.fit_transform(DFs)
+
+
+print(Result[:,0]) 
+print(Result) ## Print the new (transformed) dataset
+print("The explained variances are:")
+print(MyPCA.explained_variance_ratio_)
+
+DFs=scaler.fit_transform(DF) ## Scale data
+print(DFs)
+
+MyPCA=PCA(n_components=2)
+Result=MyPCA.fit_transform(DFs)
+
+
+print(Result[:,0]) 
+print(Result) ## Print the new (transformed) dataset
+print("The explained variances are:")
+print(MyPCA.explained_variance_ratio_)
+
+
+MyPCA=PCA(n_components=7)
+Result=MyPCA.fit_transform(DFs)
+
+
+print(Result[:,0]) 
+print(Result) ## Print the new (transformed) dataset
+print("The explained variances are:")
+print(MyPCA.explained_variance_ratio_)
+
+
+## Instantiate PCA and choose how many components
+MyPCA=PCA(n_components=3)
+# Project the original data into the PCA space
+Result=MyPCA.fit_transform(DFs)
+## Print the values of the first component 
+#print(Result[:,0]) 
+print(Result) ## Print the new (transformed) dataset
+print("The eigenvalues:", MyPCA.explained_variance_)
+## Proof
+MyCov=np.cov(Result.T)
+print("Covar of the PC PCA Matrix: \n", MyCov) ## The variance here (on the diagonal) will match the eigenvalues
+print("The eigenvalues relatively are:",MyPCA.explained_variance_ratio_)
+EVects=MyPCA.components_
+print("The eigenvectors are:\n",EVects)
+## Proof to transform origial data to eigenbasis
+## using the eigenvectors matrix.
+Transf=EVects@DF.T
+print("Proof that the transformed data is the EVects @ Data\n",Transf)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
