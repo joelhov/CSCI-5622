@@ -388,3 +388,80 @@ plot(Record_3D_DF, col=dbscan_res$cluster+1, main="DBSCAN")
 plot(Record_3D_DF$NA_Sales, col=dbscan_res$cluster, main="DBSCAN")
 
 ```
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec 11 03:14:52 2024
+
+@author: joelh
+"""
+import numpy as np
+import pandas as pd
+import math
+import matplotlib.pyplot as plt
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv("C:/Users/joelh/OneDrive/Desktop/CSCI5622/Proj/vgsales.csv", index_col=0)
+df.head(20)
+
+na = df.isna().sum().sort_values(ascending = False)
+colna = na[na > 0]
+
+perc = (round((colna/len(df)),4) * 100).map('{:.2f}%'.format)
+
+naval = pd.concat([colna, perc], axis=1).rename(columns = {0: 'Sum of missing values', 1: 'Percentage of total'})
+naval.head()
+
+colna.head()
+
+scaler = StandardScaler()
+
+ClusterDF = df.dropna()
+ClusterDF = ClusterDF.drop(['Name','Platform','Genre','Publisher'], axis=1)
+ClusterDF.head(20)
+
+
+My_KMean= KMeans(n_clusters=3)
+My_KMean.fit(ClusterDF)
+My_labels=My_KMean.predict(ClusterDF)
+print(My_labels)
+
+My_KMean2 = KMeans(n_clusters=3).fit(preprocessing.normalize(ClusterDF))
+My_KMean2.fit(ClusterDF)
+My_labels2=My_KMean2.predict(ClusterDF)
+print(My_labels2)
+
+My_KMean3= KMeans(n_clusters=3)
+My_KMean3.fit(ClusterDF)
+My_labels3=My_KMean3.predict(ClusterDF)
+print("Silhouette Score for k = 3 \n",silhouette_score(ClusterDF, My_labels3))
+
+
+
+TrainDF, TestDF = train_test_split(ClusterDF, test_size=0.3)
+print(TrainDF)
+print(TestDF)
+
+
+
+from sklearn.cluster import KMeans
+k_means=KMeans(n_clusters=2,random_state=42)
+k_means.fit(TrainDF)
+TrainDF['KMeans_labels']=k_means.labels_
+
+# Plotting resulting clusters
+colors=['purple','red','blue','green']
+plt.figure(figsize=(10,10))
+plt.scatter(TrainDF[2],TrainDF[3],c=df['KMeans_labels'],cmap=matplotlib.colors.ListedColormap(colors),s=15)
+plt.title('K-Means Clustering',fontsize=20)
+plt.xlabel('NA Sales',fontsize=14)
+plt.ylabel('Jp Sales',fontsize=14)
+plt.show()
