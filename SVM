@@ -1,0 +1,229 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 12 19:03:37 2024
+
+@author: joelh
+"""
+import string
+from sklearn.svm import LinearSVC
+import random as rd
+import numpy as np
+import nltk
+import pandas as pd
+import sklearn
+import re  
+from sklearn.metrics import confusion_matrix
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from nltk.tokenize import word_tokenize
+from nltk.probability import FreqDist
+import matplotlib.pyplot as plt
+from nltk.corpus import stopwords
+## For Stemming
+from nltk.tokenize import sent_tokenize, word_tokenize
+import os
+# Load the important packages
+from sklearn.datasets import load_breast_cancer
+import matplotlib.pyplot as plt
+from sklearn.inspection import DecisionBoundaryDisplay
+from sklearn.svm import SVC
+from sklearn.metrics import ConfusionMatrixDisplay
+import seaborn as sns
+
+
+
+# Load the datasets
+cancer = load_breast_cancer()
+X = cancer.data[:, :2]
+y = cancer.target
+
+X
+#Build the model
+svm = SVC(kernel="rbf", gamma=0.5, C=1.0)
+# Trained the model
+svm.fit(X, y)
+
+# Plot Decision Boundary
+DecisionBoundaryDisplay.from_estimator(
+        svm,
+        X,
+        response_method="predict",
+        cmap=plt.cm.Spectral,
+        alpha=0.8,
+        xlabel=cancer.feature_names[0],
+        ylabel=cancer.feature_names[1],
+    )
+
+# Scatter plot
+plt.scatter(X[:, 0], X[:, 1], 
+            c=y, 
+            s=20, edgecolors="k")
+plt.show()
+
+
+
+##################################################################
+#############   PART 2 Using the Student Dataset #################
+##################################################################
+
+## The student dataset is not text data and so does not need to be 
+## vectorized.
+## Also, the student dataset is clean. This will not normally
+## be the case.
+
+#####################################################################
+## THE DATA IS HERE
+## https://drive.google.com/file/d/18dJPOiiO9ogqOibJppc0lsDiQ2-bQs0f/view?usp=sharing
+##
+##
+###############################################################
+## Read the data into a dataframe
+filename="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Proj/svm1.csv"
+StudentDF=pd.read_csv(filename)
+
+
+
+print(StudentDF.head())
+
+from sklearn.model_selection import train_test_split
+StudentTrainDF, StudentTestDF = train_test_split(StudentDF, test_size=0.3)
+
+### OK - at this point we have Train and Test data for the text data
+## in DOG and HIKE. 
+## Of course, this can be updated to work from sentiment (like POS and NEG)
+## and can be update for multiple folders or one folder..
+
+
+##-----------------------------------------------------------------
+##
+## Now we have a training set and a testing set. 
+#print("\nThe training set is:")
+#print(StudentTrainDF)
+#print("\nThe testing set is:")
+#print(StudentTestDF)
+
+## IMPORTANT - YOU CANNOT LEAVE LABELS ON THE TEST SET
+## Save labels
+StudentTestLabels=StudentTestDF["Global_Sales"]
+#print(StudentTestLabels)
+## remove labels
+StudentTestDF = StudentTestDF.drop(["Global_Sales"], axis=1)
+#print(StudentTestDF)
+
+## Set up the training data so the models get what they expect
+StudentTrainDF_nolabels=StudentTrainDF.drop(["Global_Sales"], axis=1)
+print(StudentTrainDF_nolabels)
+StudentTrainLabels=StudentTrainDF["Global_Sales"]
+print(StudentTrainLabels)
+
+#------------------------
+## Some models do not run on qualitative data.....
+## So, we will need to remove the variables: Gender and State
+
+
+
+
+SVM_Model1=LinearSVC(C=50)
+SVM_Model1.fit(StudentTrainDF_nolabels, StudentTrainLabels)
+
+print("SVM 1 prediction:\n", SVM_Model1.predict(StudentTrainDF_nolabels))
+print("Actual:")
+print(StudentTestLabels)
+
+SVM_matrix = confusion_matrix(StudentTestLabels, SVM_Model1.predict(StudentTestDF))
+print("\nThe confusion matrix for Linear SVM is:")
+print(SVM_matrix)
+print("\n\n")
+class_names=['high',1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(pd.DataFrame(SVM_matrix), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Linear SVM', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+
+#--------------other kernels
+## RBF
+SVM_Model2=sklearn.svm.SVC(C=1.0, kernel='rbf', degree=3, gamma="auto")
+SVM_Model2.fit(StudentTrainDF_nolabels, StudentTrainLabels)
+
+print("SVM prediction:\n", SVM_Model2.predict(StudentTestDF))
+print("Actual:")
+print(StudentTestLabels)
+
+SVM_matrix = confusion_matrix(StudentTestLabels, SVM_Model2.predict(StudentTestDF))
+print("\nThe confusion matrix for rbf SVM is:")
+print(SVM_matrix)
+print("\n\n")
+class_names=['high',1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(pd.DataFrame(SVM_matrix), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for rbf SVM', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+
+SVM_Model3=sklearn.svm.SVC(C=25.0, kernel='sigmoid', degree=3, gamma="auto")
+SVM_Model3.fit(StudentTrainDF_nolabels, StudentTrainLabels)
+
+print("SVM prediction:\n", SVM_Model3.predict(StudentTestDF))
+print("Actual:")
+print(StudentTestLabels)
+
+SVM_matrix = confusion_matrix(StudentTestLabels, SVM_Model3.predict(StudentTestDF))
+print("\nThe confusion matrix for poly p = 3 SVM is:")
+print(SVM_matrix)
+print("\n\n")
+
+from sklearn.metrics import ConfusionMatrixDisplay
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(pd.DataFrame(SVM_matrix), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for sigmoid SVM', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+# first data point
+x = StudentDF["Critic_Score"]
+y = StudentDF["User_Score"]
+cat = StudentDF['Global_Sales']
+ 
+
+
+
+import seaborn as sns
+
+# Sample data
+data = {'x': x, 'y': y, 'category': cat}
+df = pd.DataFrame(data)
+
+# Create a scatter plot using Seaborn
+sns.scatterplot(x='x', y='y', hue='category', data=df)
+
+# Add labels and title
+plt.xlabel('Critic_Score')
+plt.ylabel('User_Score')
+plt.title('Scatter Plot with Color by Gloabl Sales')
+
+# Show the plot
+plt.show()
