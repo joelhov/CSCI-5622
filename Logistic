@@ -1,0 +1,160 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 12 17:32:00 2024
+
+@author: joelh
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 12 11:53:43 2024
+
+@author: joelh
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn import metrics
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.linear_model import LogisticRegression
+
+path="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Proj/"
+
+dataset4 = "dflog.csv"
+
+Dataset4_MN = pd.read_csv(path+dataset4)
+Dataset4_MN = Dataset4_MN.dropna()
+Dataset4_MN = Dataset4_MN.drop(['Name','Year_of_Release','Genre','Publisher','Global_Sales', 'Developer', 'Rating'], axis=1)
+
+
+print(Dataset4_MN)
+
+
+
+Training_MN, Testing_MN = train_test_split(Dataset4_MN, test_size=.4)
+##  Save the Labels and then remove them from the Training and Testing data
+Training_MN_Label = Training_MN["Platform"]
+Training_MN=Training_MN.drop(["Platform"], axis=1)
+Testing_MN_Label = Testing_MN["Platform"]
+Testing_MN=Testing_MN.drop(["Platform"], axis=1)
+print("Testing MN:", Testing_MN)
+
+
+## For Multinomial Naive Bayes------------------------
+## Instantiate first
+MyMN = MultinomialNB()
+print(Training_MN)
+print(Training_MN_Label)
+## Traing the model
+My_MN_Model = MyMN.fit(Training_MN, Training_MN_Label)
+print(My_MN_Model)
+print(My_MN_Model.classes_)
+
+## Predict the Testing Data using the model
+Predictions_MN=My_MN_Model.predict(Testing_MN)
+print(Predictions_MN)
+
+## Print the actual probabilities
+print("The Multinomial NB Model Prediction Probabilities are:")
+print(My_MN_Model.predict_proba(Testing_MN).round(3))
+
+## Confusion Matrix
+CM_MN = confusion_matrix(Testing_MN_Label, Predictions_MN)
+print(CM_MN)
+
+disp = ConfusionMatrixDisplay(confusion_matrix=CM_MN,display_labels=My_MN_Model.classes_)
+disp.plot()
+disp.ax_.set_title("Multinomial Naive Bayes")
+plt.show()
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(pd.DataFrame(CM_MN), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Multinomial NB', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+df = Dataset4_MN
+df.head()
+
+TrainingData, TestingData = train_test_split(df, test_size=.3)
+
+TrainingLabels = TrainingData["Platform"]
+TrainingData=TrainingData.drop(["Platform"], axis=1)
+print("The Training Labels are:")
+print(TrainingLabels)
+print("The Training Data is:")
+print(TrainingData)
+
+
+TestingLabels = TestingData["Platform"]
+TestingData=TestingData.drop(["Platform"], axis=1)
+print("The Testing Labels are:")
+print(TestingLabels)
+print("The Testing Data is:")
+print(TestingData)
+
+MyLR = LogisticRegression()
+My_LR_Model=MyLR.fit(TrainingData, TrainingLabels)
+
+MyModelPredictions=My_LR_Model.predict(TestingData)
+print(MyModelPredictions)
+
+MyCM=confusion_matrix(TestingLabels, MyModelPredictions)
+print(MyCM)
+
+sns.heatmap(pd.DataFrame(MyCM), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Logistic Regression', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+sns.heatmap(MyCM/np.sum(MyCM), annot=True, fmt='.2%', cmap='Blues')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Logistic Regression', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+print(My_LR_Model.score(TrainingData, TrainingLabels))
+
+print(My_LR_Model.predict_proba(TestingData))
+
+print(My_LR_Model.coef_)
+
+print(My_LR_Model.intercept_)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
