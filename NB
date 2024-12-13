@@ -1,0 +1,261 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 12 11:53:43 2024
+
+@author: joelh
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn import metrics
+
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import GaussianNB
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.preprocessing import OrdinalEncoder
+
+path="C:/Users/joelh/OneDrive/Desktop/CSCI5622/Proj/"
+dataset1 = "GNB.csv"
+dataset2 = "CNB.csv"
+dataset4 = "CNNB.csv"
+
+Dataset1_Gaussian = pd.read_csv(path+dataset1)
+Dataset2_Categorical = pd.read_csv(path+dataset2)
+Dataset4_MN = pd.read_csv(path+dataset4)
+
+print(Dataset1_Gaussian)
+print(Dataset2_Categorical)
+print(Dataset4_MN)
+
+
+Rating=["M", "T", "E10+", "E"]
+MyOrdEncoder=OrdinalEncoder(categories=[Rating])
+Dataset2_Categorical["Rating"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["Rating"]])
+print(Dataset2_Categorical)
+
+Critic_Score=["high", "medium", "low"]
+MyOrdEncoder=OrdinalEncoder(categories=[Critic_Score])
+Dataset2_Categorical["Critic_Score"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["Critic_Score"]])
+print(Dataset2_Categorical)
+
+User_Score=["high", "medium", "low"]
+MyOrdEncoder=OrdinalEncoder(categories=[User_Score])
+Dataset2_Categorical["User_Score"]=MyOrdEncoder.fit_transform(Dataset2_Categorical[["User_Score"]])
+
+
+print(Dataset2_Categorical)
+
+
+Training_G, Testing_G = train_test_split(Dataset1_Gaussian, test_size=.3)
+print("Training G:", Training_G)
+print("Testing G:", Testing_G)
+
+Training_G_Label = Training_G["Global_Sales"]
+Training_G=Training_G.drop(["Global_Sales"], axis=1)
+Testing_G_Label = Testing_G["Global_Sales"]
+Testing_G=Testing_G.drop(["Global_Sales"], axis=1)
+print("Testing G:", Testing_G)
+print("Testing G labels:", Testing_G_Label)
+
+Training_C, Testing_C = train_test_split(Dataset2_Categorical, test_size=.3)
+Training_C_Label = Training_C["Global_Sales"]
+Training_C=Training_C.drop(["Global_Sales"], axis=1)
+Testing_C_Label = Testing_C["Global_Sales"]
+Testing_C=Testing_C.drop(["Global_Sales"], axis=1)
+print("Testing C:", Testing_C)
+print("Testing C labels:", Testing_C_Label)
+## -------------------------------------------------------------
+
+
+##--> for Multinomial -----------------------------------------
+## Note: The name of the label here is "LABEL"
+Training_MN, Testing_MN = train_test_split(Dataset4_MN, test_size=.4)
+##  Save the Labels and then remove them from the Training and Testing data
+Training_MN_Label = Training_MN["Platform"]
+Training_MN=Training_MN.drop(["Platform"], axis=1)
+Testing_MN_Label = Testing_MN["Platform"]
+Testing_MN=Testing_MN.drop(["Platform"], axis=1)
+print("Testing MN:", Testing_MN)
+print("Testing MN labels:", Testing_MN_Label)
+## -------------------------------------------------------------
+
+## This will create one plot with all 4 confusion matrices in it
+fig, ax = plt.subplots(2, 2) ## 2 by 2 subplot
+####################################################
+## Run Naive Bayes
+####################################################
+
+## For Gaussian Naive Bayes------------------------
+## Instantiate first
+MyGNB = GaussianNB()
+
+## Training the model
+## Notice we are using the specific dataset
+## that we read in for the Gaussian NB
+My_GNB_Model = MyGNB.fit(Training_G, Training_G_Label)
+print(My_GNB_Model)
+
+## Predict the Testing Data using the model
+Predictions_G=My_GNB_Model.predict(Testing_G)
+print(Predictions_G)
+
+## Print the probabilities
+## Recall that Naive Bayes calculates the 
+## probability of each label even though it
+## only predicts the largest of those probabilities.
+## Knowing the probabilities of each label
+## will help you to see how "certain" (or not)
+## the model was about its prediction.
+print("The Gaussian NB Model Prediction Probabilities are:")
+print(My_GNB_Model.predict_proba(Testing_G).round(3))
+
+CM_G = confusion_matrix(Testing_G_Label, Predictions_G)
+print(CM_G)
+
+disp = ConfusionMatrixDisplay(confusion_matrix=CM_G,display_labels=My_GNB_Model.classes_)
+disp.plot()
+plt.show()
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(CM_G, annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Gaussian NB', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+## Confusion Matrix
+CM_G = confusion_matrix(Testing_G_Label, Predictions_G)
+print(CM_G)
+## Pretty confusion matrix
+disp = ConfusionMatrixDisplay(confusion_matrix=CM_G,display_labels=My_GNB_Model.classes_)
+ax[0][0].set_title("Gaussian Naive Bayes")
+disp.plot(ax=ax[0][0])
+plt.show()
+
+
+
+
+
+
+
+
+## Note: The name of the label here is "LABEL"
+Training_MN, Testing_MN = train_test_split(Dataset4_MN, test_size=.4)
+##  Save the Labels and then remove them from the Training and Testing data
+Training_MN_Label = Training_MN["LABEL"]
+Training_MN=Training_MN.drop(["LABEL"], axis=1)
+Testing_MN_Label = Testing_MN["LABEL"]
+Testing_MN=Testing_MN.drop(["LABEL"], axis=1)
+print("Testing MN:", Testing_MN)
+
+
+## For Categorical Naive Bayes------------------------
+## Instantiate first
+MyCNB = CategoricalNB()
+print(Training_C)
+print(Training_C_Label)
+## Training the model
+My_CNB_Model = MyCNB.fit(Training_C, Training_C_Label)
+print(My_CNB_Model)
+
+## Predict the Testing Data using the model
+Predictions_C=My_CNB_Model.predict(Testing_C)
+print(Predictions_C)
+
+## Print the actual probabilities
+print("The Categorical NB Model Prediction Probabilities are:")
+print(My_CNB_Model.predict_proba(Testing_C).round(3))
+
+## Confusion Matrix
+CM_C = confusion_matrix(Testing_C_Label, Predictions_C)
+print(CM_C)
+
+
+CM_C = confusion_matrix(Testing_C_Label, Predictions_C)
+print(CM_C)
+
+
+disp = ConfusionMatrixDisplay(confusion_matrix=CM_C,display_labels=My_CNB_Model.classes_)
+disp.plot()
+disp.ax_.set_title("Categorical Naive Bayes")
+plt.show()
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(pd.DataFrame(CM_C), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Categorical NB', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+
+
+## For Multinomial Naive Bayes------------------------
+## Instantiate first
+MyMN = MultinomialNB()
+print(Training_MN)
+print(Training_MN_Label)
+## Traing the model
+My_MN_Model = MyMN.fit(Training_MN, Training_MN_Label)
+print(My_MN_Model)
+print(My_MN_Model.classes_)
+
+## Predict the Testing Data using the model
+Predictions_MN=My_MN_Model.predict(Testing_MN)
+print(Predictions_MN)
+
+## Print the actual probabilities
+print("The Multinomial NB Model Prediction Probabilities are:")
+print(My_MN_Model.predict_proba(Testing_MN).round(3))
+
+## Confusion Matrix
+CM_MN = confusion_matrix(Testing_MN_Label, Predictions_MN)
+print(CM_MN)
+
+disp = ConfusionMatrixDisplay(confusion_matrix=CM_MN,display_labels=My_MN_Model.classes_)
+disp.plot()
+disp.ax_.set_title("Multinomial Naive Bayes")
+plt.show()
+
+class_names=[0,1] 
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+
+sns.heatmap(pd.DataFrame(CM_MN), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix for Multinomial NB', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+
+
+
+
+
+
+
+
+
